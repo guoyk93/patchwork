@@ -6,17 +6,22 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/signal"
+	"strconv"
 	"strings"
+	"syscall"
 )
 
 const (
-	keyEnvPatchSource = "PATCH_SOURCE"
-	keyEnvPatchTarget = "PATCH_TARGET"
+	keyEnvPatchSource   = "PATCH_SOURCE"
+	keyEnvPatchTarget   = "PATCH_TARGET"
+	keyEnvPatchWorkHalt = "PATCHWORK_HALT"
 )
 
 var (
 	optPatchSource = os.Getenv(keyEnvPatchSource)
 	optPatchTarget = os.Getenv(keyEnvPatchTarget)
+	optHalt, _     = strconv.ParseBool(os.Getenv(keyEnvPatchWorkHalt))
 )
 
 func exit(err *error) {
@@ -73,4 +78,12 @@ func main() {
 	if err = ioutil.WriteFile(optPatchTarget, result, 0644); err != nil {
 		return
 	}
+
+	if !optHalt {
+		return
+	}
+
+	chSig := make(chan os.Signal, 1)
+	signal.Notify(chSig, syscall.SIGTERM, syscall.SIGINT)
+	<-chSig
 }
