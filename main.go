@@ -49,10 +49,14 @@ func main() {
 		return
 	}
 
+	log.Printf("source: %s", string(rawSource))
+
 	var rawTarget []byte
 	if rawTarget, err = ioutil.ReadFile(optPatchTarget); err != nil {
 		return
 	}
+
+	log.Printf("target: %s", string(rawTarget))
 
 	var p jsonpatch.Patch
 	if p, err = jsonpatch.DecodePatch(rawSource); err != nil {
@@ -60,9 +64,11 @@ func main() {
 	}
 
 	var result []byte
-	if result, err = p.Apply(rawTarget); err != nil {
+	if result, err = p.ApplyIndent(rawTarget, "  "); err != nil {
 		return
 	}
+
+	log.Printf("result: %s", string(result))
 
 	if err = ioutil.WriteFile(optPatchTarget, result, 0644); err != nil {
 		return
